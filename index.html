@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pauta Locales">
+<title>Pauta Visita · Mr Food</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, Arial, sans-serif; background: #f0f2f5; color: #1a1a1a; }
+.app { max-width: 900px; margin: 0 auto; padding: 14px; padding-bottom: 40px; }
+.header { background: #1a3c5e; color: white; border-radius: 14px; padding: 20px 22px; margin-bottom: 14px; }
+.header h1 { font-size: 20px; font-weight: 600; margin-bottom: 3px; }
+.header p { font-size: 13px; opacity: 0.8; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.info-field { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 12px 14px; }
+.info-field label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; font-weight: 500; }
+.info-field input { width: 100%; font-size: 17px; border: none; background: transparent; color: #1a1a1a; outline: none; font-family: inherit; }
+.tipo-visita { display: flex; gap: 8px; margin-top: 6px; }
+.tipo-btn { flex: 1; padding: 10px 6px; border: 2px solid #ddd; border-radius: 10px; font-size: 15px; background: white; color: #1a1a1a; cursor: pointer; text-align: center; font-family: inherit; }
+.tipo-btn.sel { background: #1a3c5e; color: white; border-color: #1a3c5e; }
+.global-card { background: white; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; border: 1px solid #ddd; }
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.sum-card { background: #f5f7fa; border-radius: 10px; padding: 10px; text-align: center; }
+.sum-num { font-size: 26px; font-weight: 600; }
+.sum-lbl { font-size: 12px; color: #666; margin-top: 2px; }
+.ok-num { color: #28a745; } .no-num { color: #dc3545; } .na-num { color: #888; }
+.progress-bar-wrap { background: #eee; border-radius: 99px; height: 10px; overflow: hidden; margin-bottom: 6px; }
+.progress-bar { height: 100%; border-radius: 99px; background: #28a745; transition: width 0.3s; width: 0%; }
+.progress-label { text-align: center; font-size: 13px; color: #666; }
+.section { background: white; border: 1px solid #ddd; border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+.section-header { background: #1a3c5e; color: white; padding: 16px 18px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.section-header.sub { background: #2a5a8e; font-size: 15px; padding: 13px 18px; font-weight: 500; }
+.chevron { font-size: 16px; transition: transform 0.2s; display: inline-block; }
+.chevron.open { transform: rotate(180deg); }
+.section-body { display: none; }
+.section-body.open { display: block; }
+.item-row { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid #f0f0f0; gap: 10px; }
+.item-row:last-child { border-bottom: none; }
+.item-text { flex: 1; font-size: 15px; line-height: 1.45; color: #1a1a1a; }
+.btn-group { display: flex; gap: 7px; flex-shrink: 0; }
+.tick-btn { width: 56px; height: 50px; border-radius: 10px; border: 2px solid #ddd; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.1s; font-family: inherit; }
+.tick-btn:active { transform: scale(0.92); }
+.tick-btn.ok.sel { background: #d4edda; border-color: #28a745; }
+.tick-btn.no.sel { background: #f8d7da; border-color: #dc3545; }
+.tick-btn.na.sel { background: #e9ecef; border-color: #888; }
+.na-label { font-size: 12px; font-weight: 600; color: #555; }
+.compromisos-wrap { padding: 14px 16px; }
+.compromisos-wrap p { font-size: 13px; color: #666; margin-bottom: 8px; }
+.compromisos-wrap textarea { width: 100%; min-height: 90px; font-size: 16px; font-family: inherit; border: 1px solid #ddd; border-radius: 10px; padding: 12px; background: #fafafa; color: #1a1a1a; resize: vertical; }
+.send-btn { width: 100%; padding: 18px; background: #1a3c5e; color: white; border: none; border-radius: 14px; font-size: 19px; font-weight: 600; cursor: pointer; margin-top: 10px; margin-bottom: 14px; font-family: inherit; }
+.send-btn:active { transform: scale(0.98); background: #122d47; }
+.send-btn:disabled { background: #aaa; cursor: not-allowed; }
+.reset-btn { width: 100%; padding: 14px; background: #dc3545; color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 500; cursor: pointer; margin-bottom: 20px; font-family: inherit; }
+.reset-btn:active { background: #b02a37; }
+.toast { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a3c5e; color: white; padding: 16px 28px; border-radius: 14px; font-size: 17px; font-weight: 500; z-index: 999; text-align: center; max-width: 340px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.toast.ok { background: #28a745; }
+.toast.err { background: #dc3545; }
+@media (max-width: 500px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .tick-btn { width: 52px; height: 48px; font-size: 22px; }
+  .item-text { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <h1>MR FOOD SpA · Mr. Sushi</h1>
+  <p>Pauta de Visita Operacional a Sucursales</p>
+</div>
+
+<div class="info-grid">
+  <div class="info-field"><label>Nombre del Local</label><input type="text" id="local" placeholder="Ej: Sucursal Centro"></div>
+  <div class="info-field"><label>Supervisora</label><input type="text" id="supervisora" placeholder="Nombre completo"></div>
+  <div class="info-field"><label>Dirección</label><input type="text" id="direccion" placeholder="Dirección del local"></div>
+  <div class="info-field"><label>Fecha</label><input type="date" id="fecha"></div>
+  <div class="info-field"><label>Hora Inicio</label><input type="time" id="hinicio"></div>
+  <div class="info-field"><label>Hora Término</label><input type="time" id="htermino"></div>
+  <div class="info-field"><label>Encargado/a de Sucursal</label><input type="text" id="encargado" placeholder="Nombre completo"></div>
+  <div class="info-field">
+    <label>Tipo de Visita</label>
+    <div class="tipo-visita">
+      <button class="tipo-btn" onclick="selTipo(this,'Programada')">Programada</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Sin aviso')">Sin aviso</button>
+    </div>
+  </div>
+</div>
+
+<div class="global-card">
+  <div class="summary-grid">
+    <div class="sum-card"><div class="sum-num ok-num" id="g-ok">0</div><div class="sum-lbl">Cumple ✓</div></div>
+    <div class="sum-card"><div class="sum-num no-num" id="g-no">0</div><div class="sum-lbl">No cumple ✗</div></div>
+    <div class="sum-card"><div class="sum-num na-num" id="g-na">0</div><div class="sum-lbl">No aplica</div></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="global-bar"></div></div>
+  <div class="progress-label" id="global-lbl">0 de 0 ítems respondidos (0%)</div>
+</div>
+
+<div id="sections-container"></div>
+
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span>Compromisos de la Sucursal</span><span class="chevron">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="compromisos-wrap">
+      <p>La sucursal se compromete a las siguientes acciones antes de la próxima visita:</p>
+      <textarea id="compromisos" placeholder="Escribir compromisos aquí..."></textarea>
+    </div>
+  </div>
+</div>
+
+<button class="send-btn" id="send-btn" onclick="enviarASheets()">✅ Enviar a Google Sheets</button>
+<button class="reset-btn" onclick="reiniciar()">🔄 Nueva visita (borra todo)</button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRFfMtzuCRD8q2uTJ-Y_m0cYTAwwgAGkgK5OdHax6ops8HWOy2tsMUaLWd8fQv794PlQ/exec";
+
+var datos = {
+  "PARTE A — CALIDAD E INOCUIDAD ALIMENTARIA": {
+    "A1 · Limpieza General": [
+      "Pisos, paredes y cielos limpios sin suciedad visible",
+      "Ventanas y marcos limpios y en buen estado",
+      "Trampas de grasa limpias y operativas",
+      "Campanas de extracción limpias, sin acumulación de grasa",
+      "Vestuarios y baños del personal limpios con insumos",
+      "Zona de basuras limpia, contenedores tapados y diferenciados",
+      "Ausencia de plagas, vectores o signos de su presencia",
+      "Plan de sanitización disponible y registros al día"
+    ],
+    "A2 · Inocuidad y Manipulación de Alimentos": [
+      "Temperaturas de frío registradas y en rango (≤5°C / ≤-18°C)",
+      "Termómetros disponibles, calibrados y en uso",
+      "Alimentos crudos y cocidos correctamente separados",
+      "Cadena de frío mantenida en recepción, almacenamiento y despacho",
+      "Sin contaminación cruzada entre MP y productos terminados",
+      "Alimentos rotulados con fecha de elaboración y vencimiento",
+      "Sistema FIFO/PEPS aplicado en todos los almacenamientos",
+      "Aceites de fritura con registro de cambio y estado aceptable",
+      "Alimentos listos fuera de zona de peligro de temperatura",
+      "Agua para elaboración es potable (registro disponible)"
+    ],
+    "A3 · Personal y BPM": [
+      "Personal con uniforme completo, limpio y en buen estado",
+      "Uso correcto de cofia / malla y protección del cabello",
+      "Lavado de manos frecuente y correcto con jabón bactericida",
+      "Personal sin joyas, esmalte ni elementos contaminantes",
+      "Personal sin síntomas de enfermedad visibles en la visita",
+      "Prohibición de comer, beber o fumar en cocina se respeta",
+      "Personal con certificados de manipulación vigentes y visibles",
+      "Uso correcto de guantes cuando corresponde"
+    ],
+    "A4 · Equipamiento e Infraestructura": [
+      "Equipos de frío y congelación funcionando correctamente",
+      "Equipos de cocción en buen estado operativo",
+      "Utensilios y tablas diferenciados por color de uso",
+      "Sin equipos con piezas oxidadas, rotas o con riesgo",
+      "Extintores vigentes y accesibles en cocina",
+      "Señalética de emergencia visible y en buen estado",
+      "Lavamanos exclusivo de cocina operativo con agua caliente",
+      "Dispensadores de jabón y papel toalla con stock"
+    ],
+    "A5 · Libro de Control y Registros BPM": [
+      "Libro de control / cuaderno BPM presente en cocina",
+      "Registros de temperatura completados al día",
+      "Registro de limpieza y sanitización completado",
+      "Registro de recepción de MP completado y firmado",
+      "Acciones correctivas de NC anteriores registradas",
+      "No hay páginas en blanco sin justificación",
+      "Firma de encargado en cada jornada registrada"
+    ],
+    "A6 · Rotulación de Productos": [
+      "Todos los productos almacenados tienen etiqueta con nombre",
+      "Etiquetas incluyen fecha de elaboración o apertura",
+      "Etiquetas incluyen fecha de vencimiento o vida útil",
+      "Productos con alérgenos identificados correctamente",
+      "Productos de planta central llegan correctamente rotulados",
+      "No se usan envases sin etiqueta o con etiqueta ilegible",
+      "Ingredientes en línea (mise en place) rotulados"
+    ]
+  },
+  "PARTE B — COMPRAS, ADQUISICIONES E INVENTARIO": {
+    "B1 · Orden y Organización de Bodega": [
+      "Bodega limpia, ordenada y con acceso despejado",
+      "Productos en pallets o estantes (nunca en el suelo)",
+      "Separación entre productos de limpieza y alimentos",
+      "Productos clasificados por categorías (secos, enlatados, etc.)",
+      "Bodega con iluminación adecuada y ventilación suficiente",
+      "Sin productos vencidos o en mal estado en bodega",
+      "Acceso restringido y controlado a bodega",
+      "Temperatura y humedad de bodega seca en rangos aceptables"
+    ],
+    "B3 · Recepción de Mercadería": [
+      "Protocolo de recepción definido y conocido por el personal",
+      "Se revisa temperatura de productos fríos/congelados al recibir",
+      "Se verifica fecha de vencimiento y estado al recibir",
+      "Guía / factura es revisada contra lo recibido físicamente",
+      "Diferencias entre lo pedido y recibido son reportadas",
+      "Productos ingresados al sistema al momento de recepción",
+      "Registro de recepciones con firma del receptor"
+    ],
+    "B4 · Clasificación y Gestión de Facturas": [
+      "Facturas de compra archivadas de forma ordenada",
+      "Facturas clasificadas por proveedor, categoría o fecha",
+      "Facturas escaneadas o registradas en sistema de gestión",
+      "Sin facturas pendientes de clasificar o sin asignar",
+      "Boletas y gastos de caja chica con respaldo",
+      "Encargado conoce proceso de envío de facturas a administración",
+      "Coincidencia entre facturas recibidas y OC emitidas"
+    ],
+    "B5 · Declaración y Control de Mermas": [
+      "Registro activo de mermas (físico o digital)",
+      "Mermas clasificadas por tipo: vencimiento, manipulación, error",
+      "Mermas reportadas con fecha, producto, cantidad y causa",
+      "Personal de cocina conoce el proceso de declaración de merma",
+      "Mermas validadas por el encargado de turno",
+      "Datos de mermas enviados a central según periodicidad",
+      "Sin desechos de insumos no declarados como merma",
+      "Niveles de merma dentro de rangos históricos aceptados"
+    ],
+    "B6 · Gestión de Pedidos y Proveedores": [
+      "Pedidos realizados según frecuencia establecida por central",
+      "Se respetan los proveedores homologados por la empresa",
+      "Sin compras de emergencia no autorizadas de forma reiterada",
+      "Encargado tiene acceso a la plataforma de pedidos",
+      "Pedidos reflejan el consumo real (sin sobre-stock)",
+      "Comunicación con compras central fluida y documentada"
+    ]
+  }
+};
+
+var tipoVisita = '';
+var respuestas = {};
+var itemIds = [];
+
+function selTipo(btn, val) {
+  tipoVisita = val;
+  document.querySelectorAll('.tipo-btn').forEach(function(b) { b.classList.remove('sel'); });
+  btn.classList.add('sel');
+}
+
+function toggleSection(header) {
+  var body = header.nextElementSibling;
+  var chev = header.querySelector('.chevron');
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function setResp(id, val, btn) {
+  if (respuestas[id] === val) {
+    respuestas[id] = null;
+    btn.parentElement.querySelectorAll('.tick-btn').forEach(function(b) { b.classList.remove('sel'); });
+  } else {
+    respuestas[id] = val;
+    btn.parentElement.querySelectorAll('.tick-btn').forEach(function(b) { b.classList.remove('sel'); });
+    btn.classList.add('sel');
+  }
+  actualizarProgreso();
+}
+
+function actualizarProgreso() {
+  var total = itemIds.length;
+  var resp = itemIds.filter(function(id) { return respuestas[id] != null; }).length;
+  var ok = itemIds.filter(function(id) { return respuestas[id] === '✓'; }).length;
+  var no = itemIds.filter(function(id) { return respuestas[id] === '✗'; }).length;
+  var na = itemIds.filter(function(id) { return respuestas[id] === 'N/A'; }).length;
+  var pct = total ? Math.round((resp / total) * 100) : 0;
+  document.getElementById('global-bar').style.width = pct + '%';
+  document.getElementById('global-lbl').textContent = resp + ' de ' + total + ' ítems respondidos (' + pct + '%)';
+  document.getElementById('g-ok').textContent = ok;
+  document.getElementById('g-no').textContent = no;
+  document.getElementById('g-na').textContent = na;
+}
+
+function buildUI() {
+  var container = document.getElementById('sections-container');
+  for (var parte in datos) {
+    var subsecciones = datos[parte];
+    var parteDiv = document.createElement('div');
+    parteDiv.className = 'section';
+    var parteHeader = document.createElement('div');
+    parteHeader.className = 'section-header';
+    parteHeader.innerHTML = '<span>' + parte + '</span><span class="chevron">▼</span>';
+    parteHeader.onclick = (function(h) { return function() { toggleSection(h); }; })(parteHeader);
+    var parteBody = document.createElement('div');
+    parteBody.className = 'section-body';
+
+    for (var sub in subsecciones) {
+      var items = subsecciones[sub];
+      var subHeader = document.createElement('div');
+      subHeader.className = 'section-header sub';
+      subHeader.innerHTML = '<span>' + sub + '</span><span class="chevron">▼</span>';
+      subHeader.onclick = (function(h) { return function() { toggleSection(h); }; })(subHeader);
+      var subBody = document.createElement('div');
+      subBody.className = 'section-body';
+
+      (function(parte, sub, items) {
+        items.forEach(function(item, idx) {
+          var id = (parte + sub + idx).replace(/[^a-zA-Z0-9]/g, '_');
+          itemIds.push(id);
+          respuestas[id] = null;
+          var row = document.createElement('div');
+          row.className = 'item-row';
+          row.innerHTML =
+            '<span class="item-text">' + item + '</span>' +
+            '<div class="btn-group">' +
+            '<button class="tick-btn ok" onclick="setResp(\'' + id + '\',\'✓\',this)">✓</button>' +
+            '<button class="tick-btn no" onclick="setResp(\'' + id + '\',\'✗\',this)">✗</button>' +
+            '<button class="tick-btn na" onclick="setResp(\'' + id + '\',\'N/A\',this)"><span class="na-label">N/A</span></button>' +
+            '</div>';
+          subBody.appendChild(row);
+        });
+      })(parte, sub, items);
+
+      parteBody.appendChild(subHeader);
+      parteBody.appendChild(subBody);
+    }
+    parteDiv.appendChild(parteHeader);
+    parteDiv.appendChild(parteBody);
+    container.appendChild(parteDiv);
+  }
+  actualizarProgreso();
+}
+
+function mostrarToast(msg, tipo, duracion) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (tipo || '');
+  t.style.display = 'block';
+  setTimeout(function() { t.style.display = 'none'; }, duracion || 3000);
+}
+
+function enviarASheets() {
+  var local = document.getElementById('local').value.trim();
+  var supervisora = document.getElementById('supervisora').value.trim();
+  var fecha = document.getElementById('fecha').value;
+  if (!local || !supervisora || !fecha) {
+    mostrarToast('⚠️ Completa: Local, Supervisora y Fecha', 'err', 3000);
+    return;
+  }
+
+  var btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+  mostrarToast('Enviando datos...', '', 10000);
+
+  var headers = ['Fecha envío', 'Local', 'Supervisora', 'Dirección', 'Fecha visita',
+    'Hora inicio', 'Hora término', 'Encargado/a', 'Tipo de visita'];
+  var values = [
+    new Date().toLocaleString('es-CL'),
+    local,
+    supervisora,
+    document.getElementById('direccion').value,
+    fecha,
+    document.getElementById('hinicio').value,
+    document.getElementById('htermino').value,
+    document.getElementById('encargado').value,
+    tipoVisita
+  ];
+
+  var totalOk = 0, totalNo = 0, totalNa = 0;
+
+  for (var parte in datos) {
+    for (var sub in datos[parte]) {
+      datos[parte][sub].forEach(function(item, idx) {
+        var id = (parte + sub + idx).replace(/[^a-zA-Z0-9]/g, '_');
+        var r = respuestas[id] || 'Sin responder';
+        headers.push(sub + ' — ' + item);
+        values.push(r);
+        if (r === '✓') totalOk++;
+        else if (r === '✗') totalNo++;
+        else if (r === 'N/A') totalNa++;
+      });
+    }
+  }
+
+  headers.push('Total Cumple ✓', 'Total No cumple ✗', 'Total N/A', 'Compromisos');
+  values.push(totalOk, totalNo, totalNa, document.getElementById('compromisos').value);
+
+  var payload = JSON.stringify({ headers: headers, values: values });
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: payload
+  })
+  .then(function() {
+    mostrarToast('✅ ¡Datos enviados a Google Sheets!', 'ok', 4000);
+    btn.disabled = false;
+    btn.textContent = '✅ Enviar a Google Sheets';
+  })
+  .catch(function() {
+    mostrarToast('❌ Error al enviar. Revisa el internet.', 'err', 4000);
+    btn.disabled = false;
+    btn.textContent = '✅ Enviar a Google Sheets';
+  });
+}
+
+function reiniciar() {
+  if (!confirm('¿Borrar todo y empezar una nueva visita?')) return;
+  itemIds.forEach(function(id) { respuestas[id] = null; });
+  document.querySelectorAll('.tick-btn').forEach(function(b) { b.classList.remove('sel'); });
+  ['local','supervisora','direccion','fecha','hinicio','htermino','encargado','compromisos'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.querySelectorAll('.tipo-btn').forEach(function(b) { b.classList.remove('sel'); });
+  tipoVisita = '';
+  document.getElementById('fecha').valueAsDate = new Date();
+  actualizarProgreso();
+  window.scrollTo(0, 0);
+}
+
+buildUI();
+document.getElementById('fecha').valueAsDate = new Date();
+</script>
+</body>
+</html>
