@@ -121,7 +121,7 @@ body { font-family: -apple-system, Arial, sans-serif; background: #f0f2f5; color
 <div class="toast" id="toast"></div>
 
 <script>
-var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKQg9ipaH8OqdmfCAPsD1nyF9O05HFmrnw_m3pl9nApLvGwCBkBhHyJe7mekychQ/exec";
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzO0cF5MutPKoaBpeOh73mlAJ4gPSQOnIS7-UbSRsOQcLOWpIho77rQYu3SPBh9szEM7Q/exec";
 
 var datos = {
   "PARTE A — CALIDAD E INOCUIDAD ALIMENTARIA": {
@@ -385,13 +385,10 @@ function enviarASheets() {
   values.push(totalOk, totalNo, totalNa, document.getElementById('compromisos').value);
 
   var payload = JSON.stringify({ headers: headers, values: values });
+  var url = SCRIPT_URL + '?data=' + encodeURIComponent(payload);
 
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: payload
-  })
+  fetch(url)
+  .then(function(response) { return response.text(); })
   .then(function() {
     mostrarToast('✅ ¡Datos enviados a Google Sheets!', 'ok', 4000);
     btn.disabled = false;
