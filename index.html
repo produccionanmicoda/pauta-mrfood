@@ -121,7 +121,7 @@ body { font-family: -apple-system, Arial, sans-serif; background: #f0f2f5; color
 <div class="toast" id="toast"></div>
 
 <script>
-var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHpWIMspfLPmLIkn-C09bprZ4h-DOYF-fFAmlSK1aEMeufi1mjkc44vbuE4Qi63WEIeA/exec";
+var SCRIPT_URL = "https://sheetdb.io/api/v1/2byulklzvrin5";
 
 var datos = {
   "PARTE A — CALIDAD E INOCUIDAD ALIMENTARIA": {
@@ -384,42 +384,25 @@ function enviarASheets() {
   headers.push('Total Cumple ✓', 'Total No cumple ✗', 'Total N/A', 'Compromisos');
   values.push(totalOk, totalNo, totalNa, document.getElementById('compromisos').value);
 
-  var payload = JSON.stringify({ headers: headers, values: values });
+  var rowData = {};
+  headers.forEach(function(h, i) { rowData[h] = values[i]; });
 
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = SCRIPT_URL;
-  form.target = 'hidden_iframe';
-  var input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'data';
-  input.value = payload;
-  form.appendChild(input);
-  document.body.appendChild(form);
-
-  var iframe = document.getElementById('hidden_iframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.name = 'hidden_iframe';
-    iframe.id = 'hidden_iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
-
-  iframe.onload = function() {
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: rowData })
+  })
+  .then(function(response) { return response.json(); })
+  .then(function(result) {
     mostrarToast('✅ ¡Datos enviados a Google Sheets!', 'ok', 4000);
     btn.disabled = false;
     btn.textContent = '✅ Enviar a Google Sheets';
-    document.body.removeChild(form);
-  };
-
-  setTimeout(function() {
-    mostrarToast('✅ ¡Datos enviados a Google Sheets!', 'ok', 4000);
+  })
+  .catch(function(err) {
+    mostrarToast('❌ Error al enviar. Revisa el internet.', 'err', 4000);
     btn.disabled = false;
     btn.textContent = '✅ Enviar a Google Sheets';
-  }, 3000);
-
-  form.submit();
+  });
 }
 
 function reiniciar() {
