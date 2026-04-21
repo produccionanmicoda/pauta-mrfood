@@ -395,21 +395,29 @@ function enviarASheets() {
     'Hora termino': document.getElementById('htermino').value
   };
 
-  var secTotales = {};
+  var secNames = {
+    'A1 · Limpieza General': 'A1 Limpieza',
+    'A2 · Inocuidad y Manipulación de Alimentos': 'A2 Inocuidad',
+    'A3 · Personal y BPM': 'A3 Personal',
+    'A4 · Equipamiento e Infraestructura': 'A4 Equipamiento',
+    'A5 · Libro de Control y Registros BPM': 'A5 Registros',
+    'A6 · Rotulación de Productos': 'A6 Rotulacion',
+    'B1 · Orden y Organización de Bodega': 'B1 Bodega',
+    'B3 · Recepción de Mercancía': 'B3 Recepcion',
+    'B4 · Clasificación y Gestión de Facturas': 'B4 Facturas',
+    'B5 · Declaración y Control de Mermas': 'B5 Mermas',
+    'B6 · Gestión de Pedidos y Proveedores': 'B6 Pedidos'
+  };
   for (var parte in datos) {
     for (var sub in datos[parte]) {
-      var okCount = 0, noCount = 0, naCount = 0;
+      var okCount = 0;
+      var subKey = parte + sub;
       datos[parte][sub].forEach(function(item, idx) {
-        var id = (parte + sub + idx).replace(/[^a-zA-Z0-9]/g, '_');
-        var r = respuestas[id];
-        if (r === '✓') okCount++;
-        else if (r === '✗') noCount++;
-        else if (r === 'N/A') naCount++;
+        var id = (subKey + idx).replace(/[^a-zA-Z0-9]/g, '_');
+        if (respuestas[id] === '✓') okCount++;
       });
-      var subCorto = sub.split('·')[0].trim();
-      rowData[subCorto + ' Cumple'] = okCount;
-      rowData[subCorto + ' No cumple'] = noCount;
-      rowData[subCorto + ' NA'] = naCount;
+      var colName = secNames[sub] || sub;
+      rowData[colName] = okCount;
     }
   }
 
