@@ -384,8 +384,39 @@ function enviarASheets() {
   headers.push('Total Cumple ✓', 'Total No cumple ✗', 'Total N/A', 'Compromisos');
   values.push(totalOk, totalNo, totalNa, document.getElementById('compromisos').value);
 
-  var rowData = {};
-  headers.forEach(function(h, i) { rowData[h] = values[i]; });
+  var rowData = {
+    'Fecha envio': new Date().toLocaleString('es-CL'),
+    'Local': local,
+    'Supervisora': supervisora,
+    'Fecha visita': fecha,
+    'Encargado': document.getElementById('encargado').value,
+    'Tipo visita': tipoVisita,
+    'Hora inicio': document.getElementById('hinicio').value,
+    'Hora termino': document.getElementById('htermino').value
+  };
+
+  var secTotales = {};
+  for (var parte in datos) {
+    for (var sub in datos[parte]) {
+      var okCount = 0, noCount = 0, naCount = 0;
+      datos[parte][sub].forEach(function(item, idx) {
+        var id = (parte + sub + idx).replace(/[^a-zA-Z0-9]/g, '_');
+        var r = respuestas[id];
+        if (r === '✓') okCount++;
+        else if (r === '✗') noCount++;
+        else if (r === 'N/A') naCount++;
+      });
+      var subCorto = sub.split('·')[0].trim();
+      rowData[subCorto + ' Cumple'] = okCount;
+      rowData[subCorto + ' No cumple'] = noCount;
+      rowData[subCorto + ' NA'] = naCount;
+    }
+  }
+
+  rowData['Total Cumple'] = totalOk;
+  rowData['Total No cumple'] = totalNo;
+  rowData['Total NA'] = totalNa;
+  rowData['Compromisos'] = document.getElementById('compromisos').value;
 
   fetch(SCRIPT_URL, {
     method: 'POST',
